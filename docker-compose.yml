@@ -1,0 +1,8 @@
+environment:
+  _TARGET_OS: debian_11
+  _TARGET_PYTHON_INTERPRETER: '3.9'
+  _CLOUDDQ_RELEASE_VERSION: '0.5.1'
+  _GOOGLE_CLOUD_PROJECT: clouddq-pbalm
+  _CLOUDDQ_BIGQUERY_DATASET: ecommerce
+  _CLOUDDQ_BIGQUERY_REGION: europe-west6
+  _CLOUDDQ_BIGQUERY_TARGET_TABLE: data_quality_staging
