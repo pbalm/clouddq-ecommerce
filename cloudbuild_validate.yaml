@@ -1,0 +1,25 @@
+steps:
+  - name: debian:11-slim
+    args:
+      - '-c'
+      - |
+        set -x
+        DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -yq curl git wget make build-essential libssl-dev zlib1g-dev \
+        libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm \
+        libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev  \
+        zip unzip git python3-distutils python3-apt
+        scripts/install_python3.sh "3.9.7"
+        scripts/run_clouddq_pr.sh
+    entrypoint: /bin/bash
+    env:
+      - 'TARGET_OS=debian_11'
+      - 'TARGET_PYTHON_INTERPRETER=3.9'
+      - 'CLOUDDQ_RELEASE_VERSION=0.5.1'
+      - 'GOOGLE_CLOUD_PROJECT=clouddq-pbalm'
+      - 'CLOUDDQ_BIGQUERY_DATASET=ecommerce'
+      - 'CLOUDDQ_BIGQUERY_REGION=europe-west6'
+      - 'CLOUDDQ_BIGQUERY_TARGET_TABLE=data_quality_staging'
+    
+timeout: 600s
+options:
+  machineType: 'E2_HIGHCPU_8'

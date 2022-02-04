@@ -1,0 +1,108 @@
+entities:
+  CATALOG:
+    source_database: BIGQUERY
+    table_name: catalog
+    dataset_name: ecommerce
+    project_name: clouddq-pbalm
+    columns:
+      PRODUCT_ID:
+        name: product_id
+        data_type: STRING
+      PRODUCT_NAME:
+        name: product_name
+        data_type: STRING
+    
+  INVENTORY:
+    source_database: BIGQUERY
+    table_name: inventory
+    dataset_name: ecommerce
+    project_name: clouddq-pbalm
+    columns:
+      PRODUCT_ID:
+        name: product_id
+        data_type: STRING
+      N_AVAILABLE:
+        name: n_available
+        data_type: INTEGER
+
+  ORDER_LINE_ITEMS:
+    source_database: BIGQUERY
+    table_name: order_line_items
+    dataset_name: ecommerce
+    project_name: clouddq-pbalm
+    columns:
+      ORDER_ID:
+        name: order_id
+        data_type: STRING
+      PRODUCT_ID:
+        name: product_id
+        data_type: STRING
+      ITEM_AMOUNT:
+        name: item_amount
+        data_type: INTEGER
+      N_ITEMS:
+        name: n_items
+        data_type: INTEGER
+      ORDER_AMOUNT:
+        name: order_amount
+        data_type: INTEGER
+
+row_filters:
+  NONE:
+    filter_sql_expr: |-
+      True
+
+rules:
+  UNIQUE:
+    rule_type: CUSTOM_SQL_STATEMENT
+    params:
+      custom_sql_statement: |-
+        select $column from data
+        group by $column
+        having count(*) > 1
+
+  FOREIGN_KEY_VALID:
+    rule_type: CUSTOM_SQL_EXPR
+    custom_sql_arguments:
+      pk_dataset
+      pk_table
+      pk_column
+    params:
+      custom_sql_expr: |-
+        $column in (select distinct $pk_column from $pk_dataset.`$pk_table`)
+
+  ORDER_LINE_ITEMS_TOTAL:
+    rule_type: CUSTOM_SQL_STATEMENT
+    params:
+      custom_sql_statement: |-
+        select data.order_id, data.product_id, data.order_amount, totals.summed_amount from data
+        join 
+        (select order_id, sum(n_items * item_amount) as summed_amount
+        from clouddq-pbalm.ecommerce.order_line_items
+        group by order_id) as totals using (order_id)
+        where not data.$column = totals.summed_amount
+
+rule_bindings:
+  FOREIGN_KEY_INVENTORY:
+    entity_id: INVENTORY
+    column_id: product_id
+    row_filter_id: NONE
+    rule_ids:
+        - FOREIGN_KEY_VALID:
+            pk_dataset: ecommerce
+            pk_table: catalog
+            pk_column: product_id
+
+  CATALOG_ID_UNIQUE:
+    entity_id: CATALOG
+    column_id: product_id
+    row_filter_id: NONE
+    rule_ids:
+        - UNIQUE
+
+  ORDER_LINE_ITEMS_TOTAL:
+    entity_id: ORDER_LINE_ITEMS
+    column_id: order_amount
+    row_filter_id: NONE
+    rule_ids:
+      - ORDER_LINE_ITEMS_TOTAL
