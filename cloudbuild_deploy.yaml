@@ -1,0 +1,30 @@
+steps:
+  - id: "Prepare artefacts" 
+    name: debian:11-slim
+    entrypoint: /bin/bash    
+    args:
+      - '-c'
+      - |
+        set -x
+        DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -yq wget zip
+        wget -q -O clouddq_executable.zip https://github.com/GoogleCloudPlatform/cloud-data-quality/releases/download/v"${_CLOUDDQ_RELEASE_VERSION}"/clouddq_executable_v"${_CLOUDDQ_RELEASE_VERSION}"_"${_TARGET_OS}"_python"${_TARGET_PYTHON_INTERPRETER}".zip
+        zip -r config config
+  - id: "Back up previous deployment"
+    name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gsutil'
+    args: ['mv', 'gs://${_BUCKET_PRODUCTION}/current',  'gs://${_BUCKET_PRODUCTION}/archive/backed_up_by_build_${BUILD_ID}']
+    env:
+    - 'CLOUDSDK_COMPUTE_REGION=us-central1'
+    - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
+artifacts:
+  objects:
+    location: 'gs://${_BUCKET_PRODUCTION}/current'
+    paths: ['config.zip', 'clouddq_executable.zip']
+substitutions:
+  _TARGET_OS: debian_11
+  _TARGET_PYTHON_INTERPRETER: '3.9'
+  _CLOUDDQ_RELEASE_VERSION: '0.5.1'
+  _BUCKET_PRODUCTION: clouddq-prod-deployment
+timeout: 600s
+options:
+  machineType: 'E2_HIGHCPU_8'
