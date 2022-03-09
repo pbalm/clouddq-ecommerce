@@ -1,52 +1,3 @@
-entities:
-  CATALOG:
-    source_database: BIGQUERY
-    table_name: catalog
-    dataset_name: ecommerce
-    project_name: clouddq-pbalm
-    columns:
-      PRODUCT_ID:
-        name: product_id
-        data_type: STRING
-      PRODUCT_NAME:
-        name: product_name
-        data_type: STRING
-    
-  INVENTORY:
-    source_database: BIGQUERY
-    table_name: inventory
-    dataset_name: ecommerce
-    project_name: clouddq-pbalm
-    columns:
-      PRODUCT_ID:
-        name: product_id
-        data_type: STRING
-      N_AVAILABLE:
-        name: n_available
-        data_type: INTEGER
-
-  ORDER_LINE_ITEMS:
-    source_database: BIGQUERY
-    table_name: order_line_items
-    dataset_name: ecommerce
-    project_name: clouddq-pbalm
-    columns:
-      ORDER_ID:
-        name: order_id
-        data_type: STRING
-      PRODUCT_ID:
-        name: product_id
-        data_type: STRING
-      ITEM_AMOUNT:
-        name: item_amount
-        data_type: INTEGER
-      N_ITEMS:
-        name: n_items
-        data_type: INTEGER
-      ORDER_AMOUNT:
-        name: order_amount
-        data_type: INTEGER
-
 row_filters:
   NONE:
     filter_sql_expr: |-
@@ -84,7 +35,7 @@ rules:
 
 rule_bindings:
   FOREIGN_KEY_INVENTORY:
-    entity_id: INVENTORY
+    entity_uri: bigquery://projects/clouddq-pbalm/datasets/ecommerce/tables/inventory
     column_id: product_id
     row_filter_id: NONE
     rule_ids:
@@ -94,14 +45,14 @@ rule_bindings:
             pk_column: product_id
 
   CATALOG_ID_UNIQUE:
-    entity_id: CATALOG
+    entity_uri: bigquery://projects/clouddq-pbalm/datasets/ecommerce/tables/catalog
     column_id: product_id
     row_filter_id: NONE
     rule_ids:
         - UNIQUE
 
   ORDER_LINE_ITEMS_TOTAL:
-    entity_id: ORDER_LINE_ITEMS
+    entity_uri: bigquery://projects/clouddq-pbalm/datasets/ecommerce/tables/order_line_items
     column_id: order_amount
     row_filter_id: NONE
     rule_ids:
